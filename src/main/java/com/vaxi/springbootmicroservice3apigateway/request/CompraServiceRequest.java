@@ -11,7 +11,7 @@ import java.util.List;
 @FeignClient(
         value = "compra-service",
         path = "api/compra",
-        url = "${compras.service.url}",
+        //url = "${compras.service.url}",
         configuration = FeignConfiguration.class
 )
 public interface CompraServiceRequest {
