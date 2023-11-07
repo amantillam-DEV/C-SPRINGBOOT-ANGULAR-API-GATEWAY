@@ -1,9 +1,11 @@
 package com.vaxi.springbootmicroservice3apigateway.security;
 
+import com.vaxi.springbootmicroservice3apigateway.model.Role;
 import com.vaxi.springbootmicroservice3apigateway.security.jwt.JwtAuthorizationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -39,12 +41,19 @@ public class SecurityConfig {
         authenticationManagerBuilder.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder);
 
         AuthenticationManager authenticationManager = authenticationManagerBuilder.build();
-        http.csrf().disable().cors().disable().authorizeHttpRequests()
+
+        http.cors();
+        http.csrf().disable();
+        http.authenticationManager(authenticationManager);
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+
+        http.authorizeHttpRequests()
                 .antMatchers("/api/authentication/sign-in", "/api/authentication/sign-up").permitAll()
-                .and()
-                .authenticationManager(authenticationManager)
-                .addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)
-                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
+                .antMatchers(HttpMethod.GET,"/gateway/inmueble").permitAll()
+                .antMatchers("/gateway/inmueble/**").hasRole(Role.ADMIN.name())
+                .anyRequest().authenticated();
+
+        http.addFilterBefore(jwtAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
 
