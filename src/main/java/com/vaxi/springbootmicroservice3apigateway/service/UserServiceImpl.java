@@ -3,6 +3,7 @@ package com.vaxi.springbootmicroservice3apigateway.service;
 import com.vaxi.springbootmicroservice3apigateway.model.Role;
 import com.vaxi.springbootmicroservice3apigateway.model.User;
 import com.vaxi.springbootmicroservice3apigateway.repository.UserRepository;
+import com.vaxi.springbootmicroservice3apigateway.security.jwt.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,13 +20,25 @@ public class UserServiceImpl implements UserService{
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtProvider jwtProvider;
+
     @Override
     public User saveUser(User user){
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setRole(Role.USER);
         user.setFechaCreacion(LocalDateTime.now());
+        user.setApellido("Prueba");
+        user.setEmail("email_prueba");
+        user.setTelefono("12312313123");
 
-        return userRepository.save(user);
+        User userCreated = userRepository.save(user);
+
+        String jwt = jwtProvider.generateToken(userCreated);
+        userCreated.setToken(jwt);
+
+        return userCreated;
     }
 
     @Override
